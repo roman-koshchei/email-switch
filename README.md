@@ -10,8 +10,16 @@ Currently I plan to support only emails with single receiver, maybe later suppor
 Most providers give you option to use SMTP server directly,
 so if project doesn't implement your particular provider then use SMTP one.
 
-|     |     |     |
-| --- | --- | --- |
+| Service                                              | Status        |
+| ---------------------------------------------------- | ------------- |
+| SMTP                                                 | Seems to work |
+| [Resend](https://resend.com/)                        | Seems to work |
+| [Brevo](https://www.brevo.com/)                      | Seems to work |
+| [SendGrid](https://sendgrid.com/)                    | Seems to work |
+| [Postmark](https://postmarkapp.com/)                 | Planned       |
+| [Mailchimp](https://mailchimp.com/)                  | Planned       |
+| [Mailjet](https://www.mailjet.com/)                  | Planned       |
+| [Amazon SES](https://aws.amazon.com/ru/ses/pricing/) | Planned       |
 
 Previously it was a small module I have created for my e-commerce platform
 (because I wanted to spend no money): [roman-koshchei.github.io/unator/switches/email](https://roman-koshchei.github.io/unator/switches/email).
