@@ -1,4 +1,6 @@
-using System.Text.Json.Serialization;
+using Api;
+using Api.Senders;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -9,37 +11,73 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
-var sampleTodos = new Todo[] {
-    new(1, "Walk the dog"),
-    new(2, "Do the dishes", DateOnly.FromDateTime(DateTime.Now)),
-    new(3, "Do the laundry", DateOnly.FromDateTime(DateTime.Now.AddDays(1))),
-    new(4, "Clean the bathroom"),
-    new(5, "Clean the car", DateOnly.FromDateTime(DateTime.Now.AddDays(2)))
-};
+var ROOT_API_KEY = "some secret key";
+
+bool IsAuthorized(string header)
+{
+    var parts = header.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    if (parts.Length != 2) return false;
+
+    var key = parts[1];
+    return key == ROOT_API_KEY;
+}
+
+var email = new EmailSwitch(
+    new ResendSender("resend-api-token"),
+    new SmtpSender("tsrctcrs", 456, "user", "password")
+);
 
 var api = app.MapGroup("/api");
-api.MapPost("/{id}", (int id) =>
+api.MapPost("/emails", async (
+    [FromHeader(Name = "Authorization")] string authHeader,
+    [FromBody] EmailInput input
+) =>
 {
-    //sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
-    //  ? Results.Ok(todo)
-    //  : Results.NotFound();
+    if (IsAuthorized(authHeader) is false) return Results.Forbid();
+
+    if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
+
+    var sent = await email.TrySend(
+        fromEmail: input.FromEmail,
+        fromName: input.FromName ?? input.FromEmail,
+        to: input.To,
+        subject: input.Subject,
+        text: input.Text,
+        html: input.Html
+    );
+
+    if (sent) { return Results.Ok(); }
+    return Results.Problem();
 });
 
 app.Run();
 
 public class EmailInput
 {
-    public string fromEmail { get; set; }
-    public string fromName { get; set; }
-    public IEnumerable<string> toEmails { get; set; }
-    public string subject { get; set; }
-    public string text { get; set; }
-    public string html { get; set; }
-}
+    public string FromEmail { get; set; } = string.Empty;
+    public string? FromName { get; set; } = string.Empty;
+    public string[] To { get; set; } = [];
+    public string Subject { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string Html { get; set; } = string.Empty;
 
-public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplete = false);
+    public static bool IsEmail(string email)
+    {
+        int index = email.IndexOf('@');
 
-[JsonSerializable(typeof(Todo[]))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext
-{
+        return (
+            index > 0 &&
+            index != email.Length - 1 &&
+            index == email.LastIndexOf('@')
+        );
+    }
+
+    public bool IsValid()
+    {
+        if (string.IsNullOrWhiteSpace(FromEmail) || !IsEmail(FromEmail)) return false;
+        if (To is null || To.Length == 0) return false;
+        if (string.IsNullOrWhiteSpace(Subject)) return false;
+        if (string.IsNullOrWhiteSpace(Html) && string.IsNullOrWhiteSpace(Text)) return false;
+        return true;
+    }
 }
