@@ -1,3 +1,5 @@
+![Banner](./assets/email-switch-repository-preview.png)
+
 # Email Switch
 
 Self-hostable API for highly available email sending through pool of providers.
