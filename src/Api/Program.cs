@@ -1,6 +1,28 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Api;
 using Api.Senders;
 using Microsoft.AspNetCore.Mvc;
+
+Env.LoadFile("./.env");
+var ROOT_API_KEY = Env.GetRequired<string>("ROOT_API_KEY");
+
+
+
+var email = new EmailSwitch(
+    new ResendSender("resend-api-token"),
+    new SmtpSender("tsrctcrs", 456, "user", "password")
+);
+
+// providers loading
+JsonDocument providersJson = JsonDocument.Parse(await File.ReadAllBytesAsync("./providers.json"));
+foreach (var obj in providersJson.RootElement.EnumerateArray())
+{
+    var id = obj.GetProperty("id").GetString();
+
+}
+
+
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -11,8 +33,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
-var ROOT_API_KEY = "some secret key";
-
 bool IsAuthorized(string header)
 {
     var parts = header.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -22,10 +42,7 @@ bool IsAuthorized(string header)
     return key == ROOT_API_KEY;
 }
 
-var email = new EmailSwitch(
-    new ResendSender("resend-api-token"),
-    new SmtpSender("tsrctcrs", 456, "user", "password")
-);
+
 
 var api = app.MapGroup("/api");
 api.MapPost("/emails", async (

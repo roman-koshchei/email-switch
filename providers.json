@@ -1,0 +1,21 @@
+[
+  {
+    "id": "resend",
+    "token": "resend-api-token"
+  },
+  {
+    "id": "smtp",
+    "host": "smtp.example.com",
+    "port": 456,
+    "user": "user",
+    "password": "password"
+  },
+  {
+    "id": "sendgrid",
+    "key": "send-grid-api-key"
+  },
+  {
+    "id": "brevo",
+    "token": "brevo-api-token"
+  }
+]

@@ -26,7 +26,13 @@ so if project doesn't implement your particular provider then use SMTP one.
 Previously it was a small module I have created for my e-commerce platform
 (because I wanted to spend no money): [roman-koshchei.github.io/unator/switches/email](https://roman-koshchei.github.io/unator/switches/email).
 
-# Deployment
+## Related Posts
+
+- https://x.com/resend/status/1827303292915085742
+- https://x.com/thdxr/status/1836625504306126991
+- https://x.com/AvgDatabaseCEO/status/1836563526233592056
+
+## Deployment
 
 Docker brother, Docker. For now it's most viable option.
 You can run it as systemd services as well and soon I may make a NixOS module for it.
