@@ -1,4 +1,4 @@
-![Banner](./assets/email-switch-repository-preview.png)
+
 
 # Email Switch
 
