@@ -10,12 +10,6 @@
     "user": "user",
     "password": "password"
   },
-  {
-    "id": "sendgrid",
-    "token": "send-grid-api-key"
-  },
-  {
-    "id": "brevo",
-    "token": "brevo-api-token"
-  }
+  { "id": "sendgrid", "token": "send-grid-api-key" },
+  { "id": "brevo", "token": "brevo-api-token" }
 ]

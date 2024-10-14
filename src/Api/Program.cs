@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Api;
 using Api.Senders;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -92,10 +91,11 @@ api.MapPost("/emails", async (
     return Results.Problem();
 });
 
-#region qstash
+// #region qstash
 // QStash queue integration for fun
 
 var QSTASH = Env.GetOptionalVal<bool>("QSTASH") ?? false;
+Console.WriteLine($"Qstash is enabled: {QSTASH}");
 if (QSTASH)
 {
     var QSTASH_CURRENT_SIGNING_KEY = Env.GetRequired<string>("QSTASH_CURRENT_SIGNING_KEY");
@@ -175,7 +175,7 @@ bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
     }
 }
 
-#endregion
+// #endregion
 
 app.Run();
 

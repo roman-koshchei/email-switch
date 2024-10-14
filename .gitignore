@@ -5,6 +5,7 @@
 
 *.env
 .env
+qstash.sh
 
 # User-specific files
 *.rsuser
