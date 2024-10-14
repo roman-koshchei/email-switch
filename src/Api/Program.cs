@@ -151,6 +151,7 @@ bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
 
         var validations = new TokenValidationParameters
         {
+            ValidateIssuerSigningKey = true,
             ValidateIssuer = true,
             ValidIssuer = "Upstash",
             IssuerSigningKey = securityKey,
