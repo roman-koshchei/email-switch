@@ -152,6 +152,7 @@ bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
             IssuerSigningKey = securityKey,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(1),
+            ValidateAudience = false
         };
 
         // TODO: validate url
