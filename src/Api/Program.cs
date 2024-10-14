@@ -109,6 +109,8 @@ if (QSTASH)
         HttpRequest req
     ) =>
     {
+        Console.WriteLine(signature);
+
         req.EnableBuffering();
         using var memoryStream = new MemoryStream();
         await req.Body.CopyToAsync(memoryStream);
