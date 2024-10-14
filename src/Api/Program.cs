@@ -1,4 +1,3 @@
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
@@ -16,6 +15,7 @@ Env.LoadFile("./.env");
 var ROOT_API_KEY = Env.GetRequired<string>("ROOT_API_KEY");
 
 IdentityModelEventSource.ShowPII = true;
+IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 
 #region providers
 
@@ -31,7 +31,7 @@ else
     providersJson = JsonDocument.Parse(await File.ReadAllBytesAsync(PROVIDERS_FILE));
 }
 
-// I know, "Factories" wtf. I have no other name for this functions. 
+// I know, "Factories" wtf. I have no other name for this functions.
 (string, Func<JsonElement, IEmailSender>)[] providersFactories = [
     ("resend", ResendSender.Parse),
     ("smtp", SmtpSender.Parse),
@@ -57,7 +57,7 @@ foreach (var obj in providersJson.RootElement.EnumerateArray())
     }
 }
 
-#endregion
+#endregion providers
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -143,17 +143,19 @@ if (QSTASH)
     });
 }
 
-bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
+bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
 {
     try
     {
+        Console.WriteLine($"KEY: {key}");
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+        Console.WriteLine($"KEY ID: {securityKey.KeyId}");
 
         var validations = new TokenValidationParameters
         {
-            ValidateIssuerSigningKey = true,
             ValidateIssuer = true,
             ValidIssuer = "Upstash",
+            ValidateIssuerSigningKey = true,
             IssuerSigningKey = securityKey,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(1),
@@ -163,7 +165,7 @@ bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
         // TODO: validate url
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(signature, validations, out var _);
+        var principal = tokenHandler.ValidateToken(token, validations, out var _);
 
         var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString()?.Replace("=", "");
         if (jwtBodyHash is null) { return false; }
@@ -202,7 +204,7 @@ internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
 
-#endregion
+#endregion json
 
 #region inputs
 
@@ -285,7 +287,6 @@ public static class Http
         return ((int)statusCode >= 200) && ((int)statusCode <= 299);
     }
 }
-
 
 /// <summary>
 /// Helper to safely use Env variables
@@ -370,7 +371,6 @@ public class Env
     }
 }
 
-
 internal interface IEnvStrategy
 {
     public string GetRequired(string key);
@@ -407,7 +407,7 @@ internal class EnvThrowStrategy : IEnvStrategy
     }
 }
 
-#endregion
+#endregion helpers
 
 #region senders
 
@@ -431,4 +431,4 @@ public class TestEmailSender : IEmailSender
     public static IEmailSender Parse(JsonElement _) => new TestEmailSender();
 }
 
-#endregion
+#endregion senders
