@@ -118,7 +118,7 @@ if (QSTASH)
             isLegit = VerifyQstashRequestWithKey(QSTASH_NEXT_SIGNING_KEY, signature, body);
         }
 
-        if (isLegit is false) { return Results.Forbid(); }
+        if (isLegit is false) { return Results.BadRequest(); }
 
         if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
 
@@ -140,18 +140,17 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
 {
     try
     {
-        Console.WriteLine($"KEY: {key}");
+        Console.WriteLine($"KEY USED: {key}");
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-        Console.WriteLine($"KEY ID: {securityKey.KeyId}");
 
         var validations = new TokenValidationParameters
         {
-            ValidateIssuer = true,
+            ValidateIssuer = false,
             ValidIssuer = "Upstash",
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = securityKey,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(1),
+            // ClockSkew = TimeSpan.FromSeconds(1),
             ValidateAudience = false
         };
 
