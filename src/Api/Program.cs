@@ -119,13 +119,13 @@ if (QSTASH)
         await req.Body.CopyToAsync(memoryStream);
         byte[] body = memoryStream.ToArray();
 
-        var isLegit = VerifyQstashRequestWithKey(QSTASH_CURRENT_SIGNING_KEY, signature, body);
-        if (isLegit is false)
-        {
-            isLegit = VerifyQstashRequestWithKey(QSTASH_NEXT_SIGNING_KEY, signature, body);
-        }
+        // var isLegit = VerifyQstashRequestWithKey(QSTASH_CURRENT_SIGNING_KEY, signature, body);
+        // if (isLegit is false)
+        // {
+        //     isLegit = VerifyQstashRequestWithKey(QSTASH_NEXT_SIGNING_KEY, signature, body);
+        // }
 
-        if (isLegit is false) { return Results.Forbid(); }
+        // if (isLegit is false) { return Results.Forbid(); }
 
         if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
 
