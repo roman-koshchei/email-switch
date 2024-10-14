@@ -1,18 +1,27 @@
 ﻿using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace Api.Senders;
 
 /// <summary>
 /// Send emails with SendGrid service: <see href="https://sendgrid.com/">sendgrid.com</see>
 /// </summary>
-public class SendGridSender(string apiKey) : IEmailSender
+public class SendGridSender(string token) : IEmailSender
 {
     private const string url = "https://api.sendgrid.com/v3/mail/send";
 
     private readonly HttpClient httpClient = Http.JsonClient(_ =>
     {
-        _.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        _.Authorization = new AuthenticationHeaderValue("Bearer", token);
     });
+
+    public static string Id => "sendgrid";
+
+    public static IEmailSender Parse(JsonElement jsonObject)
+    {
+        var token = jsonObject.GetProperty("token").GetString()!;
+        return new SendGridSender(token);
+    }
 
     public async Task<bool> TrySend(
         string fromEmail, string fromName, IEnumerable<string> toEmails,

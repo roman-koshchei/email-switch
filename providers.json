@@ -12,7 +12,7 @@
   },
   {
     "id": "sendgrid",
-    "key": "send-grid-api-key"
+    "token": "send-grid-api-key"
   },
   {
     "id": "brevo",

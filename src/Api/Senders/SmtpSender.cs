@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using System.Text.Json;
 
 namespace Api.Senders;
 
@@ -11,6 +12,17 @@ public class SmtpSender(string host, int port, string user, string password) : I
         Port = port,
         Credentials = new NetworkCredential(user, password)
     };
+
+    public static string Id => "smtp";
+
+    public static IEmailSender Parse(JsonElement jsonObject)
+    {
+        var host = jsonObject.GetProperty("host").GetString()!;
+        var port = jsonObject.GetProperty("port").GetInt32()!;
+        var user = jsonObject.GetProperty("user").GetString()!;
+        var password = jsonObject.GetProperty("password").GetString()!;
+        return new SmtpSender(host, port, user, password);
+    }
 
     public async Task<bool> TrySend(string fromEmail, string fromName, IEnumerable<string> to, string subject, string text, string html)
     {
