@@ -108,9 +108,10 @@ if (QSTASH)
     ) =>
     {
         req.EnableBuffering();
-        using var memoryStream = new MemoryStream();
-        await req.Body.CopyToAsync(memoryStream);
-        byte[] body = memoryStream.ToArray();
+
+        using var reader = new StreamReader(req.Body, Encoding.UTF8);
+        var body = await reader.ReadToEndAsync();
+        req.Body.Seek(0, SeekOrigin.Begin);
 
         var isLegit = VerifyQstashRequestWithKey(QSTASH_CURRENT_SIGNING_KEY, signature, body);
         if (isLegit is false)
@@ -136,7 +137,7 @@ if (QSTASH)
     });
 }
 
-bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
+bool VerifyQstashRequestWithKey(string key, string token, string body)
 {
     try
     {
@@ -173,7 +174,7 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
             return false;
         }
 
-        var bodyHash = SHA256.HashData(body);
+        var bodyHash = SHA256.HashData(Convert.FromBase64String(body));
         var base64Hash = Convert.ToBase64String(bodyHash);
         Console.WriteLine($"REAL BODY HASH: {base64Hash}");
         base64Hash = base64Hash.Replace("=", "");
