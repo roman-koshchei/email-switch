@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Net.Mail;
+using Microsoft.AspNetCore.WebUtilities;
 
 Env.LoadFile("./.env");
 var ROOT_API_KEY = Env.GetRequired<string>("ROOT_API_KEY");
@@ -178,7 +179,7 @@ bool VerifyQstashRequestWithKey(string key, string token, string body)
         }
 
         var bodyHash = SHA256.HashData(Encoding.UTF8.GetBytes(body));
-        var base64Hash = Convert.ToBase64String(bodyHash);
+        var base64Hash = WebEncoders.Base64UrlEncode(bodyHash);
         Console.WriteLine($"REAL BODY HASH: {base64Hash}");
         base64Hash = base64Hash.Replace("=", "");
         Console.WriteLine($"REAL BODY HASH: {base64Hash}");
