@@ -1,6 +1,8 @@
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -160,10 +162,9 @@ bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
         // TODO: validate url
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        _ = tokenHandler.ValidateToken(signature, validations, out var validatedToken);
-        var jwt = (validatedToken as JwtSecurityToken)!;
+        var principal = tokenHandler.ValidateToken(signature, validations, out var _);
 
-        var jwtBodyHash = jwt.Payload["body"]?.ToString()?.Replace("=", "");
+        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString()?.Replace("=", "");
         if (jwtBodyHash is null) { return false; }
 
         var bodyHash = SHA256.HashData(body);
