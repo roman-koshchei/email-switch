@@ -7,10 +7,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Api.Senders;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 Env.LoadFile("./.env");
 var ROOT_API_KEY = Env.GetRequired<string>("ROOT_API_KEY");
+
+IdentityModelEventSource.ShowPII = true;
 
 #region providers
 
@@ -109,8 +112,6 @@ if (QSTASH)
         HttpRequest req
     ) =>
     {
-        Console.WriteLine(signature);
-
         req.EnableBuffering();
         using var memoryStream = new MemoryStream();
         await req.Body.CopyToAsync(memoryStream);
@@ -150,7 +151,6 @@ bool VerifyQstashRequestWithKey(string key, string signature, byte[] body)
         {
             ValidateIssuer = true,
             ValidIssuer = "Upstash",
-            ValidateIssuerSigningKey = true,
             IssuerSigningKey = securityKey,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(1),
