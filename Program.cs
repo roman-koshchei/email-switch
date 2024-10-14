@@ -168,9 +168,7 @@ bool VerifyQstashRequestWithKey(string key, string token, string body)
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal = tokenHandler.ValidateToken(token, validations, out var _);
 
-        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString();
-        Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
-        jwtBodyHash = jwtBodyHash?.Replace("=", "");
+        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString()?.Replace("=", "");
         Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
         if (jwtBodyHash is null)
         {
@@ -179,11 +177,9 @@ bool VerifyQstashRequestWithKey(string key, string token, string body)
         }
 
         var bodyHash = SHA256.HashData(Encoding.UTF8.GetBytes(body));
-        var base64Hash = WebEncoders.Base64UrlEncode(bodyHash);
+        var base64Hash = WebEncoders.Base64UrlEncode(bodyHash).Replace("=", "");
         Console.WriteLine($"REAL BODY HASH: {base64Hash}");
-        base64Hash = base64Hash.Replace("=", "");
-        Console.WriteLine($"REAL BODY HASH: {base64Hash}");
-        if (jwtBodyHash != base64Hash)
+        if (jwtBodyHash.Equals(base64Hash) is false)
         {
             Console.WriteLine("Hashes aren't equal");
             return false;
