@@ -171,8 +171,8 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
         }
 
         var bodyHash = SHA256.HashData(body);
-        Console.WriteLine($"REAL BODY HASH: {bodyHash}");
         var base64Hash = Convert.ToBase64String(bodyHash).Replace("=", "");
+        Console.WriteLine($"REAL BODY HASH: {base64Hash}");
         if (jwtBodyHash != base64Hash)
         {
             Console.WriteLine("Hashes aren't equal");
