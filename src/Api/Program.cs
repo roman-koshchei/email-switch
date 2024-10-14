@@ -31,6 +31,7 @@ else
     ("resend", ResendSender.Parse),
     ("smtp", SmtpSender.Parse),
     ("sendgrid", SendGridSender.Parse),
+    ("test", TestEmailSender.Parse),
 ];
 
 List<IEmailSender> senders = [];
@@ -191,6 +192,7 @@ bool IsAuthorized(string header)
 #region json
 
 [JsonSerializable(typeof(EmailInput))]
+[JsonSerializable(typeof(ProblemDetails))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
@@ -398,6 +400,30 @@ internal class EnvThrowStrategy : IEnvStrategy
             );
         }
     }
+}
+
+#endregion
+
+#region senders
+
+public class TestEmailSender : IEmailSender
+{
+    public Task<bool> TrySend(
+        string fromEmail, string fromName, IEnumerable<string> to,
+        string subject, string text, string html
+    )
+    {
+        Console.WriteLine("Test email sender:");
+        Console.WriteLine($"- From Email: {fromEmail}");
+        Console.WriteLine($"- From Name: {fromName}");
+        Console.WriteLine($"- To: {to}");
+        Console.WriteLine($"- Subject: {subject}");
+        Console.WriteLine($"- Text: {text}");
+
+        return Task.FromResult(true);
+    }
+
+    public static IEmailSender Parse(JsonElement _) => new TestEmailSender();
 }
 
 #endregion
