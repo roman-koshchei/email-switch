@@ -103,7 +103,7 @@ if (QSTASH)
 
     api.MapPost("/qstash", async (
         [FromHeader(Name = "Upstash-Signature")] string signature,
-        // [FromBody] EmailInput input,
+        [FromBody] EmailInput input,
         [FromServices] EmailSwitch email,
         HttpRequest req
     ) =>
@@ -124,21 +124,21 @@ if (QSTASH)
 
         if (isLegit is false) { return Results.BadRequest(); }
 
-        // if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
+        if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
 
-        // var sent = await email.TrySend(
-        //     fromEmail: input.FromEmail,
-        //     fromName: input.FromName ?? input.FromEmail,
-        //     to: input.To,
-        //     subject: input.Subject,
-        //     text: input.Text,
-        //     html: input.Html
-        // );
+        var sent = await email.TrySend(
+            fromEmail: input.FromEmail,
+            fromName: input.FromName ?? input.FromEmail,
+            to: input.To,
+            subject: input.Subject,
+            text: input.Text,
+            html: input.Html
+        );
 
-        // if (sent) { return Results.Ok(); }
-
-        Console.WriteLine("Legit");
-        return Results.Ok();
+        if (sent) { return Results.Ok(); }
+        return Results.Problem();
+        // Console.WriteLine("Legit");
+        // return Results.Ok();
     });
 }
 
@@ -168,7 +168,7 @@ bool VerifyQstashRequestWithKey(string key, string token, string body)
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal = tokenHandler.ValidateToken(token, validations, out var _);
 
-        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.Value?.ToString()?.Replace("=", "");
+        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.Value?.Replace("=", "");
         Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
         if (jwtBodyHash is null)
         {
