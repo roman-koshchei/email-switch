@@ -150,6 +150,9 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = securityKey,
             ValidateLifetime = true,
+            // RequireSignedTokens = true,
+            ConfigurationManager = null,
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
             // ClockSkew = TimeSpan.FromSeconds(1),
             ValidateAudience = false
         };
