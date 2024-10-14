@@ -163,17 +163,26 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
         var principal = tokenHandler.ValidateToken(token, validations, out var _);
 
         var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString()?.Replace("=", "");
-        if (jwtBodyHash is null) { return false; }
+        Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
+        if (jwtBodyHash is null)
+        {
+            Console.WriteLine("Body claim isn't found");
+            return false;
+        }
 
         var bodyHash = SHA256.HashData(body);
+        Console.WriteLine($"REAL BODY HASH: {bodyHash}");
         var base64Hash = Convert.ToBase64String(bodyHash).Replace("=", "");
-        if (jwtBodyHash != base64Hash) { return false; }
+        if (jwtBodyHash != base64Hash)
+        {
+            Console.WriteLine("Hashes aren't equal");
+            return false;
+        }
 
         return true;
     }
-    catch (Exception ex)
+    catch (Exception)
     {
-        Console.WriteLine(ex.ToString());
         return false;
     }
 }
