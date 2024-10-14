@@ -113,6 +113,8 @@ if (QSTASH)
         var body = await reader.ReadToEndAsync();
         req.Body.Seek(0, SeekOrigin.Begin);
 
+        Console.WriteLine($"BODY: {body}");
+
         var isLegit = VerifyQstashRequestWithKey(QSTASH_CURRENT_SIGNING_KEY, signature, body);
         if (isLegit is false)
         {
@@ -162,7 +164,6 @@ bool VerifyQstashRequestWithKey(string key, string token, string body)
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal = tokenHandler.ValidateToken(token, validations, out var _);
-
 
         var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString();
         Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
