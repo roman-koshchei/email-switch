@@ -102,7 +102,7 @@ if (QSTASH)
 
     api.MapPost("/qstash", async (
         [FromHeader(Name = "Upstash-Signature")] string signature,
-        [FromBody] EmailInput input,
+        // [FromBody] EmailInput input,
         [FromServices] EmailSwitch email,
         HttpRequest req
     ) =>
@@ -123,19 +123,21 @@ if (QSTASH)
 
         if (isLegit is false) { return Results.BadRequest(); }
 
-        if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
+        // if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
 
-        var sent = await email.TrySend(
-            fromEmail: input.FromEmail,
-            fromName: input.FromName ?? input.FromEmail,
-            to: input.To,
-            subject: input.Subject,
-            text: input.Text,
-            html: input.Html
-        );
+        // var sent = await email.TrySend(
+        //     fromEmail: input.FromEmail,
+        //     fromName: input.FromName ?? input.FromEmail,
+        //     to: input.To,
+        //     subject: input.Subject,
+        //     text: input.Text,
+        //     html: input.Html
+        // );
 
-        if (sent) { return Results.Ok(); }
-        return Results.Problem();
+        // if (sent) { return Results.Ok(); }
+
+        Console.WriteLine("Legit");
+        return Results.Ok();
     });
 }
 
@@ -175,7 +177,7 @@ bool VerifyQstashRequestWithKey(string key, string token, string body)
             return false;
         }
 
-        var bodyHash = SHA256.HashData(Convert.FromBase64String(body));
+        var bodyHash = SHA256.HashData(Encoding.UTF8.GetBytes(body));
         var base64Hash = Convert.ToBase64String(bodyHash);
         Console.WriteLine($"REAL BODY HASH: {base64Hash}");
         base64Hash = base64Hash.Replace("=", "");
