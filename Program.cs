@@ -140,7 +140,7 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
 {
     try
     {
-        Console.WriteLine($"KEY USED: {key}");
+        // Console.WriteLine($"KEY USED: {key}");
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
 
         var validations = new TokenValidationParameters
@@ -162,7 +162,10 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal = tokenHandler.ValidateToken(token, validations, out var _);
 
-        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString()?.Replace("=", "");
+
+        var jwtBodyHash = principal.Claims.FirstOrDefault(x => x.Type == "body")?.ToString();
+        Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
+        jwtBodyHash = jwtBodyHash?.Replace("=", "");
         Console.WriteLine($"JWT BODY HASH: {jwtBodyHash}");
         if (jwtBodyHash is null)
         {
@@ -171,7 +174,9 @@ bool VerifyQstashRequestWithKey(string key, string token, byte[] body)
         }
 
         var bodyHash = SHA256.HashData(body);
-        var base64Hash = Convert.ToBase64String(bodyHash).Replace("=", "");
+        var base64Hash = Convert.ToBase64String(bodyHash);
+        Console.WriteLine($"REAL BODY HASH: {base64Hash}");
+        base64Hash = base64Hash.Replace("=", "");
         Console.WriteLine($"REAL BODY HASH: {base64Hash}");
         if (jwtBodyHash != base64Hash)
         {
