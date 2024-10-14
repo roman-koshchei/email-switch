@@ -103,16 +103,14 @@ if (QSTASH)
 
     api.MapPost("/qstash", async (
         [FromHeader(Name = "Upstash-Signature")] string signature,
-        [FromBody] EmailInput input,
         [FromServices] EmailSwitch email,
         HttpRequest req
     ) =>
     {
-        req.EnableBuffering();
+        // req.EnableBuffering();
 
         using var reader = new StreamReader(req.Body, Encoding.UTF8);
         var body = await reader.ReadToEndAsync();
-        req.Body.Seek(0, SeekOrigin.Begin);
 
         Console.WriteLine($"BODY: {body}");
 
@@ -123,6 +121,10 @@ if (QSTASH)
         }
 
         if (isLegit is false) { return Results.BadRequest(); }
+
+        EmailInput input;
+        try { input = JsonSerializer.Deserialize<EmailInput>(body)!; }
+        catch (Exception) { return Results.BadRequest("Can't deserialize body"); }
 
         if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
 
@@ -137,8 +139,6 @@ if (QSTASH)
 
         if (sent) { return Results.Ok(); }
         return Results.Problem();
-        // Console.WriteLine("Legit");
-        // return Results.Ok();
     });
 }
 
