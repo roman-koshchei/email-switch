@@ -101,7 +101,7 @@ if (QSTASH)
     var QSTASH_CURRENT_SIGNING_KEY = Env.GetRequired<string>("QSTASH_CURRENT_SIGNING_KEY");
     var QSTASH_NEXT_SIGNING_KEY = Env.GetRequired<string>("QSTASH_NEXT_SIGNING_KEY");
 
-    api.MapPost("/qstash", async (
+    _ = api.MapPost("/qstash", async (
         [FromHeader(Name = "Upstash-Signature")] string signature,
         [FromServices] EmailSwitch email,
         HttpRequest req
@@ -123,7 +123,14 @@ if (QSTASH)
         if (isLegit is false) { return Results.BadRequest(); }
 
         EmailInput input;
-        try { input = JsonSerializer.Deserialize<EmailInput>(body)!; }
+        try
+        {
+            var options = new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            input = JsonSerializer.Deserialize<EmailInput>(body, options)!;
+        }
         catch (Exception) { return Results.BadRequest("Can't deserialize body"); }
 
         if (input.IsValid() is false) return Results.BadRequest("Body has wrong shape");
