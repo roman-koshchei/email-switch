@@ -98,6 +98,8 @@ If there will be requests to have it compiled without docker into pure executabl
 
 ## Related Posts
 
+These posts are highlighting problem of email services going down.
+
 - https://x.com/resend/status/1827303292915085742
 - https://x.com/thdxr/status/1836625504306126991
 - https://x.com/AvgDatabaseCEO/status/1836563526233592056
