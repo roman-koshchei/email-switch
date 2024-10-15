@@ -10,6 +10,7 @@ Table of content:
 - [Quick Start](#quick-start)
 - [Providers](#providers)
 - [Deployment](#deployment)
+- [QStash Integration](#qstash-integration)
 
 ## Introduction
 
@@ -95,6 +96,23 @@ Docker brother, Docker. For now it's most viable option, because of the way peop
 And with Docker I can move whole service to Native AOT Compilation without worrying about cross compiling (it's not supported for native aot for now).
 
 If there will be requests to have it compiled without docker into pure executable file, then we will solve it.
+
+## QStash Integration
+
+Upstash has message queue solution called QStash. I wanted to try Upstash and message queues for quite a while and Email Switch was nice place for it.
+
+There is a special endpoint for QStash requests.
+This endpoint checks upstash signature instead of api key.
+
+To configure Qstash you need to add next environment variables:
+
+```
+QSTASH=true
+QSTASH_CURRENT_SIGNING_KEY=current-signing-key-from-dashboard
+QSTASH_NEXT_SIGNING_KEY=next-signing-key-from-dashboard
+```
+
+Endpoint is `/api/qstash`. Body of QStash request should be same as for single email send.
 
 ## Related Posts
 
