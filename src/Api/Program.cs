@@ -55,6 +55,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
     options.SerializerOptions.PropertyNameCaseInsensitive = true;
 });
+AppJsonSerializerContext.Default.Options.PropertyNameCaseInsensitive = true;
 
 // Logging, I don't want to have appsettings.json
 builder.Logging.SetMinimumLevel(LogLevel.Information);
@@ -106,6 +107,8 @@ app.UseHttpsRedirection();
 
 app.Run();
 
+
+
 bool IsAuthorized(string header)
 {
     var parts = header.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -114,6 +117,7 @@ bool IsAuthorized(string header)
     var key = parts[1];
     return key == ROOT_API_KEY;
 }
+
 
 [JsonSerializable(typeof(EmailInput))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
