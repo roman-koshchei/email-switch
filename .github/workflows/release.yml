@@ -1,14 +1,8 @@
-name: Build and Push Docker Image
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: Release Docker Image
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   release:
     types: [published]
 
@@ -26,17 +20,17 @@ jobs:
       packages: write
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
-      id-token: write
+      # id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: "v2.2.4"
+      # - name: Install cosign
+      #   if: github.event_name != 'pull_request'
+      #   uses: sigstore/cosign-installer@v3
+      #   with:
+      #     cosign-release: "v2.2.4"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -48,8 +42,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -73,12 +65,11 @@ jobs:
       # repository is public to avoid leaking data.  If you would like to publish
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+      # - name: Sign the published Docker image
+      #   if: ${{ github.event_name != 'pull_request' }}
+      #   env:
+      #     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
+      #     TAGS: ${{ steps.meta.outputs.tags }}
+      #   # This step uses the identity token to provision an ephemeral certificate
+      #   # against the sigstore community Fulcio instance.
+      #   run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
