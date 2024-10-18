@@ -6,6 +6,9 @@ name: Build and Push Docker Image
 # documentation.
 
 on:
+  push:
+    branches:
+      - main
   release:
     types: [published]
 
