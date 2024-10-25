@@ -2,6 +2,8 @@ package emails
 
 import (
 	"fmt"
+	"net"
+	"net/smtp"
 	"strings"
 
 	"github.com/roman-koshchei/email-switch/types"
@@ -174,4 +176,35 @@ func (sender SendGrid) Send(email *types.Email) bool {
 	}
 
 	return statusSuccessful(status)
+}
+
+type Smtp struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+}
+
+func NewSmtp(host string, port int, user, password string) *Smtp {
+	return &Smtp{
+		Host:     host,
+		Port:     port,
+		User:     user,
+		Password: password,
+	}
+}
+
+func (sender *Smtp) Send(email *types.Email) bool {
+	var body string
+	if len(email.Html) > 0 {
+		body = email.Html
+	} else {
+		body = email.Text
+	}
+
+	auth := smtp.PlainAuth("", sender.User, sender.Password, sender.Host)
+	addr := net.JoinHostPort(sender.Host, fmt.Sprint(sender.Port))
+
+	err := smtp.SendMail(addr, auth, email.FromEmail, email.To, []byte(body))
+	return err == nil
 }
