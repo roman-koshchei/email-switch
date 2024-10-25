@@ -2,7 +2,7 @@
 
 curl -v -X POST http://localhost:3000/api/emails \
 -H "Content-Type: application/json" \
--H "Authorization: Bearer a" \
+-H "Authorization: Bearer super-secret-key" \
 -d '{
     "fromEmail": "alice@example.com",
     "to": ["bob@example.com", "carol@example.com"],

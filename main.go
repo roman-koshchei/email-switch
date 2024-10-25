@@ -42,7 +42,6 @@ func main() {
 	})
 
 	api := app.Group("/api", Authorization)
-
 	api.Post("/emails", func(c *fiber.Ctx) error {
 
 		input := new(types.Email)

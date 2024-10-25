@@ -52,3 +52,5 @@ func (TestSender) Send(email *types.Email) bool {
 
 	return true
 }
+
+
