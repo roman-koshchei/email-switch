@@ -1,9 +1,10 @@
 package emails
 
 import (
-	"email-switch/types"
 	"fmt"
 	"strings"
+
+	"github.com/roman-koshchei/email-switch/types"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -52,5 +53,3 @@ func (TestSender) Send(email *types.Email) bool {
 
 	return true
 }
-
-

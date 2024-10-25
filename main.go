@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"email-switch/emails"
-	"email-switch/types"
+	"github.com/roman-koshchei/email-switch/emails"
+	"github.com/roman-koshchei/email-switch/types"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -64,7 +64,7 @@ func main() {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	})
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":8080"))
 }
 
 func envFromFile(path string) {
