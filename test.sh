@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -v -X POST http://localhost:3000/api/emails \
+curl -v -X POST http://localhost:8080/api/emails \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer super-secret-key" \
 -d '{
