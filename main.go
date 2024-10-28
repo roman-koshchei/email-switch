@@ -18,9 +18,9 @@ import (
 
 var RootApiKey string
 var ProvidersFile string
-var QStashCurrentSigningKey string = ""
-var QStashNextSigningKey string = ""
-var QStash bool
+var QStashCurrentSigningKey string
+var QStashNextSigningKey string
+var QStash bool = false
 
 func init() {
 	envFromFile("./.env")
