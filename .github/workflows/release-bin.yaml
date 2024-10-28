@@ -26,7 +26,8 @@ jobs:
 
       - name: Build Binaries
         run: |
-          env GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o email-switch-${{ matrix.os }}-${{ matrix.arch }} .
+          ext=${{ matrix.os == 'windows' && '.exe' || '' }}
+          env GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o email-switch-${{ matrix.os }}-${{ matrix.arch }}$ext .
 
       - name: Upload Release Assets
         uses: svenstaro/upload-release-action@v2
@@ -35,3 +36,4 @@ jobs:
           tag: ${{ github.ref }}
           file: email-switch-*
           file_glob: true
+          overwrite: true
