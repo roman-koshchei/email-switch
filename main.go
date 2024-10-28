@@ -1,9 +1,13 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/roman-koshchei/email-switch/emails"
 	"github.com/roman-koshchei/email-switch/types"
@@ -12,28 +16,32 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 )
 
-var ROOT_API_KEY string
-var PROVIDERS_FILE string
+var RootApiKey string
+var ProvidersFile string
+var QStashCurrentSigningKey string = ""
+var QStashNextSigningKey string = ""
 
 func init() {
 	envFromFile("./.env")
 
-	ROOT_API_KEY = os.Getenv("ROOT_API_KEY")
+	RootApiKey = os.Getenv("ROOT_API_KEY")
 
-	PROVIDERS_FILE = os.Getenv("PROVIDERS_FILE")
-	if len(PROVIDERS_FILE) == 0 {
-		PROVIDERS_FILE = "./providers.json"
+	ProvidersFile = os.Getenv("PROVIDERS_FILE")
+	if len(ProvidersFile) == 0 {
+		ProvidersFile = "./providers.json"
 	}
+
 }
 
 func main() {
-	providersFileDate, err := os.ReadFile(PROVIDERS_FILE)
+	providersFileDate, err := os.ReadFile(ProvidersFile)
 	if err != nil {
 		fmt.Println("Error reading providers file:", err)
 		return
 	}
 
 	providers := emails.Parse(providersFileDate)
+	sender := emails.NewEmailSwitch(providers)
 
 	app := fiber.New()
 
@@ -45,20 +53,37 @@ func main() {
 	api.Post("/emails", func(c *fiber.Ctx) error {
 
 		input := new(types.Email)
-		if err := c.BodyParser(input); err != nil {
+		if err := c.BodyParser(input); err != nil || !input.IsValid() {
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if !input.IsValid() {
-			return c.SendStatus(fiber.StatusBadRequest)
+		if sender.Send(input) {
+			return c.SendStatus(fiber.StatusOK)
 		}
 
-		// bruh, it's just a loop?
-		// yeah, for now. later it will be "smart" loop
-		for _, provider := range providers {
-			if provider.Send(input) {
-				return c.SendStatus(fiber.StatusOK)
-			}
+		return c.SendStatus(fiber.StatusInternalServerError)
+	})
+
+	app.Post("/qstash", func(c *fiber.Ctx) error {
+		signature := c.Get("Upstash-Signature")
+
+		body := c.BodyRaw()
+
+		legit := verifyRequestWithKey(QStashCurrentSigningKey, signature, body)
+		if !legit {
+			legit = verifyRequestWithKey(QStashNextSigningKey, signature, body)
+		}
+		if !legit {
+			return c.Status(fiber.StatusBadRequest).SendString("Signature isn't legit")
+		}
+
+		input := new(types.Email)
+		if err := c.BodyParser(input); err != nil || !input.IsValid() {
+			return c.Status(fiber.StatusBadRequest).SendString("Body has wrong shape")
+		}
+
+		if sender.Send(input) {
+			return c.SendStatus(fiber.StatusOK)
 		}
 
 		return c.SendStatus(fiber.StatusInternalServerError)
@@ -67,12 +92,48 @@ func main() {
 	log.Fatal(app.Listen(":8080"))
 }
 
+func verifyRequestWithKey(key string, token string, body []byte) bool {
+	signingKey := []byte(key)
+
+	claims := jwt.MapClaims{}
+	parsedToken, err := jwt.ParseWithClaims(token, claims,
+		func(_ *jwt.Token) (interface{}, error) {
+			return signingKey, nil
+		},
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+		jwt.WithIssuer("Upstash"),
+		jwt.WithLeeway(time.Second),
+		jwt.WithIssuedAt(),
+	)
+	if err != nil || !parsedToken.Valid {
+		return false
+	}
+
+	// TODO: verify url
+
+	jwtBodyHash, ok := claims["body"].(string)
+	if !ok {
+		return false
+	}
+	jwtBodyHash = strings.TrimRight(jwtBodyHash, "=")
+
+	hashedBody := sha256.Sum256(body)
+	base64Hash := strings.TrimRight(base64.URLEncoding.EncodeToString(hashedBody[:]), "=")
+	if jwtBodyHash != base64Hash {
+		return false
+	}
+
+	return true
+}
+
 func envFromFile(path string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Info("Env file isn't found")
 		return
 	}
+
+	log.Info("Reading env variables from " + path)
 
 	content := string(data)
 	lines := strings.Split(content, "\n")
@@ -90,7 +151,7 @@ func Authorization(c *fiber.Ctx) error {
 
 	if len(parts) == 2 &&
 		parts[0] == "Bearer" &&
-		parts[1] == ROOT_API_KEY {
+		parts[1] == RootApiKey {
 
 		return c.Next()
 	}

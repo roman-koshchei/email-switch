@@ -38,6 +38,12 @@ func Parse(jsonData []byte) []EmailSender {
 		} else if id == "sendgrid" {
 			token := object["token"].(string)
 			providers = append(providers, NewSendGrid(token))
+		} else if id == "smtp" {
+			host := object["host"].(string)
+			port := object["port"].(int)
+			user := object["user"].(string)
+			password := object["password"].(string)
+			providers = append(providers, NewSmtp(host, port, user, password))
 		} else if id == "test" {
 			providers = append(providers, TestSender{})
 		} else {

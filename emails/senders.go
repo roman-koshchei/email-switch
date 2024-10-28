@@ -20,7 +20,26 @@ func statusSuccessful(status int) bool {
 	return status < 300 && status >= 200
 }
 
-const RESEND_URL = "https://api.resend.com/emails"
+type EmailSwitch struct {
+	senders []EmailSender
+}
+
+func NewEmailSwitch(senders []EmailSender) *EmailSwitch {
+	return &EmailSwitch{senders: senders}
+}
+
+func (sender *EmailSwitch) Send(email *types.Email) bool {
+	// bruh, it's just a loop?
+	// yeah, for now. later it will be "smart" loop
+	for _, sender := range sender.senders {
+		if sender.Send(email) {
+			return true
+		}
+	}
+	return false
+}
+
+const ResendUrl = "https://api.resend.com/emails"
 
 type Resend struct {
 	token string
@@ -31,7 +50,7 @@ func NewResend(token string) *Resend {
 }
 
 func (sender Resend) Send(email *types.Email) bool {
-	agent := fiber.Post(RESEND_URL)
+	agent := fiber.Post(ResendUrl)
 	agent.JSON(fiber.Map{
 		"from":    fmt.Sprintf("%s <%s>", email.FromName, email.FromEmail),
 		"to":      email.To,
@@ -60,7 +79,7 @@ func (TestSender) Send(email *types.Email) bool {
 	return true
 }
 
-const BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+const BrevoUrl = "https://api.brevo.com/v3/smtp/email"
 
 type Brevo struct {
 	token string
@@ -71,7 +90,7 @@ func NewBrevo(token string) *Brevo {
 }
 
 func (sender Brevo) Send(email *types.Email) bool {
-	agent := fiber.Post(BREVO_URL)
+	agent := fiber.Post(BrevoUrl)
 
 	toResult := make([]map[string]any, len(email.To))
 	for i, toEmail := range email.To {
@@ -100,7 +119,7 @@ func (sender Brevo) Send(email *types.Email) bool {
 	return statusSuccessful(status)
 }
 
-const SENDGRID_URL = "https://api.sendgrid.com/v3/mail/send"
+const SendgridUrl = "https://api.sendgrid.com/v3/mail/send"
 
 type SendGrid struct {
 	token string
@@ -141,7 +160,7 @@ type SendGridPayload struct {
 }
 
 func (sender SendGrid) Send(email *types.Email) bool {
-	agent := fiber.Post(SENDGRID_URL)
+	agent := fiber.Post(SendgridUrl)
 
 	from := SendGridPerson{
 		Email: email.FromEmail,
