@@ -20,6 +20,7 @@ var RootApiKey string
 var ProvidersFile string
 var QStashCurrentSigningKey string = ""
 var QStashNextSigningKey string = ""
+var QStash bool
 
 func init() {
 	envFromFile("./.env")
@@ -29,6 +30,13 @@ func init() {
 	ProvidersFile = os.Getenv("PROVIDERS_FILE")
 	if len(ProvidersFile) == 0 {
 		ProvidersFile = "./providers.json"
+	}
+
+	qstashEnv := os.Getenv("QSTASH")
+	if "true" == qstashEnv || "1" == qstashEnv {
+		QStash = true
+		QStashCurrentSigningKey = os.Getenv("QSTASH_CURRENT_SIGNING_KEY")
+		QStashNextSigningKey = os.Getenv("QSTASH_NEXT_SIGNING_KEY")
 	}
 
 }
@@ -64,30 +72,32 @@ func main() {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	})
 
-	app.Post("/qstash", func(c *fiber.Ctx) error {
-		signature := c.Get("Upstash-Signature")
+	if QStash {
+		app.Post("/qstash", func(c *fiber.Ctx) error {
+			signature := c.Get("Upstash-Signature")
 
-		body := c.BodyRaw()
+			body := c.BodyRaw()
 
-		legit := verifyRequestWithKey(QStashCurrentSigningKey, signature, body)
-		if !legit {
-			legit = verifyRequestWithKey(QStashNextSigningKey, signature, body)
-		}
-		if !legit {
-			return c.Status(fiber.StatusBadRequest).SendString("Signature isn't legit")
-		}
+			legit := verifyRequestWithKey(QStashCurrentSigningKey, signature, body)
+			if !legit {
+				legit = verifyRequestWithKey(QStashNextSigningKey, signature, body)
+			}
+			if !legit {
+				return c.Status(fiber.StatusBadRequest).SendString("Signature isn't legit")
+			}
 
-		input := new(types.Email)
-		if err := c.BodyParser(input); err != nil || !input.IsValid() {
-			return c.Status(fiber.StatusBadRequest).SendString("Body has wrong shape")
-		}
+			input := new(types.Email)
+			if err := c.BodyParser(input); err != nil || !input.IsValid() {
+				return c.Status(fiber.StatusBadRequest).SendString("Body has wrong shape")
+			}
 
-		if sender.Send(input) {
-			return c.SendStatus(fiber.StatusOK)
-		}
+			if sender.Send(input) {
+				return c.SendStatus(fiber.StatusOK)
+			}
 
-		return c.SendStatus(fiber.StatusInternalServerError)
-	})
+			return c.SendStatus(fiber.StatusInternalServerError)
+		})
+	}
 
 	log.Fatal(app.Listen(":8080"))
 }
