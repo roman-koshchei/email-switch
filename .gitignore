@@ -7,6 +7,8 @@
 .env
 qstash.sh
 
+.idea
+
 # User-specific files
 *.rsuser
 *.suo
