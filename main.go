@@ -17,7 +17,7 @@ import (
 )
 
 var RootApiKey string
-var ProvidersFile string
+var Providers []emails.EmailSender
 var QStashCurrentSigningKey string
 var QStashNextSigningKey string
 var QStash bool = false
@@ -27,10 +27,25 @@ func init() {
 
 	RootApiKey = os.Getenv("ROOT_API_KEY")
 
-	ProvidersFile = os.Getenv("PROVIDERS_FILE")
-	if len(ProvidersFile) == 0 {
-		ProvidersFile = "./providers.json"
+	var providersData []byte
+	providersValue := os.Getenv("PROVIDERS_VALUE")
+	if len(providersValue) > 0 {
+		providersData = []byte(providersValue)
+	} else {
+		providersFile := os.Getenv("PROVIDERS_FILE")
+		if len(providersFile) == 0 {
+			providersFile = "./providers.json"
+		}
+
+		data, err := os.ReadFile(providersFile)
+		if err != nil {
+			fmt.Println("Providers file can't be accessed or doesn't exist")
+			panic(err)
+		}
+
+		providersData = data
 	}
+	Providers = emails.Parse(providersData)
 
 	qstashEnv := os.Getenv("QSTASH")
 	if "true" == qstashEnv || "1" == qstashEnv {
@@ -42,14 +57,7 @@ func init() {
 }
 
 func main() {
-	providersFileDate, err := os.ReadFile(ProvidersFile)
-	if err != nil {
-		fmt.Println("Error reading providers file:", err)
-		return
-	}
-
-	providers := emails.Parse(providersFileDate)
-	sender := emails.NewEmailSwitch(providers)
+	sender := emails.NewEmailSwitch(Providers)
 
 	app := fiber.New()
 
